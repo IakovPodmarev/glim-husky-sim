@@ -5,53 +5,42 @@ FROM osrf/ros:jazzy-desktop
 RUN apt-get update && apt-get install -y mesa-utils mesa-utils-extra libgl1-mesa-dri
 ENV LIBGL_ALWAYS_SOFTWARE=1
 
-# install clearpath sumulator (based on gazebo and has husky model in it)
-RUN apt-get update && \ 
-    apt-get install -y ros-jazzy-clearpath-simulator 
-
-RUN apt-get install ros-jazzy-ros-gz
-
-RUN mkdir -p ~/clearpath_ws/src 
-
-# Force reinstall python3-apt and ensure it's properly configured
-RUN apt-get remove -y python3-apt && \
-    apt-get install -y python3-apt --reinstall
-
-# put bash as default shell, set up source, so it's not needed to be specified in each RUN command
-SHELL ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash"] 
-RUN apt-get -y install wget python3-vcstool && \ 
+# offboard computer setup from clearpath robotics tutorial (links in reame.md)
+# ROS packages from clearpath's server
+RUN apt-get -y install wget python3-vcstool python3-apt && \ 
     wget https://packages.clearpathrobotics.com/public.key -O - | apt-key add - && \
     sh -c 'echo \
         "deb https://packages.clearpathrobotics.com/stable/ubuntu $(lsb_release -cs) main" > \
-        /etc/apt/sources.list.d/clearpath-latest.list'
-
+        /etc/apt/sources.list.d/clearpath-latest.list' && \
+    apt-get update
+    
+# update rosdep dependencies with the package built & hosted on Clearpath's servers
 RUN wget \
     https://raw.githubusercontent.com/clearpathrobotics/public-rosdistro/master/rosdep/50-clearpath.list \
     -O /etc/ros/rosdep/sources.list.d/50-clearpath.list && \
     rosdep update
 
+#This package will install launch and configuration files for visualising and interacting with the robot
 RUN apt-get install -y ros-jazzy-clearpath-desktop
-
-RUN mkdir ~/clearpath/ && \
-    ros2 run clearpath_generator_common generate_bash -s ~/clearpath && \
-    source ~/clearpath/setup.bash
-
-#install dependencies
-RUN cd ~/clearpath_ws && \
-    wget https://raw.githubusercontent.com/clearpathrobotics/clearpath_simulator/jazzy/dependencies.repos && \
-    vcs import src < dependencies.repos && \
-    rosdep install -r --from-paths src -i -y 
-
-# build ros packages 
-RUN colcon build --symlink-install 
 
 # put robot.yaml (with husky A200 specifications) into the right repo 
 WORKDIR /root/clearpath/ 
 COPY  src/robot.yaml /root/clearpath/ 
 
-# start publishing points and imu data 
-# should it be done here? 
+# Generate the setup.bash file
+RUN ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash && ros2 run clearpath_generator_common generate_bash -s ~/clearpath"] 
 
+RUN apt-get install -y ros-jazzy-ros-gz 
 
+# install clearpath sumulator (based on gazebo and has husky model in it)
+RUN apt-get update && \ 
+    apt-get install -y ros-jazzy-clearpath-simulator 
+
+# start publishing points and imu data
+# current topics:
+    #/a200_0000/sensors/lidar3d_0/points
+    # couldn't find imu in the list of topics
+
+RUN echo 'source /root/clearpath/setup.bash' >> /root/.bashrc
 
 CMD ["/bin/bash", "-c", "ros2 launch clearpath_gz simulation.launch.py"]
