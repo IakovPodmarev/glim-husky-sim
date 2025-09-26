@@ -1,0 +1,6 @@
+services:
+  simulation:
+    image: husky_sim
+  data_catcher:
+    image: osrf/ros
+    command: ros2 list topic

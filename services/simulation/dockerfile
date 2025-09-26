@@ -23,24 +23,25 @@ RUN wget \
 #This package will install launch and configuration files for visualising and interacting with the robot
 RUN apt-get install -y ros-jazzy-clearpath-desktop
 
-# put robot.yaml (with husky A200 specifications) into the right repo 
-WORKDIR /root/clearpath/ 
-COPY  src/robot.yaml /root/clearpath/ 
-
-# Generate the setup.bash file
-RUN ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash && ros2 run clearpath_generator_common generate_bash -s ~/clearpath"] 
-
 RUN apt-get install -y ros-jazzy-ros-gz 
 
 # install clearpath sumulator (based on gazebo and has husky model in it)
 RUN apt-get update && \ 
     apt-get install -y ros-jazzy-clearpath-simulator 
 
-# start publishing points and imu data
-# current topics:
-    #/a200_0000/sensors/lidar3d_0/points
-    # couldn't find imu in the list of topics
 
+# put robot.yaml (with husky A200 specifications) into the right repo 
+WORKDIR /root/clearpath/ 
+COPY  src/robot.yaml /root/clearpath/ 
+
+# copying launch to make this garbage simulator work correctly
+COPY src/launch/robot_spawn.launch.py /opt/ros/jazzy/share/clearpath_gz/launch/ 
+
+# Generate the setup.bash file
+RUN ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash \
+    && ros2 run clearpath_generator_common generate_bash -s ~/clearpath"] 
+
+# setup environment
 RUN echo 'source /root/clearpath/setup.bash' >> /root/.bashrc
 
 CMD ["/bin/bash", "-c", "ros2 launch clearpath_gz simulation.launch.py"]
