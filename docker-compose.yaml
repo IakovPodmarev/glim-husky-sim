@@ -1,6 +1,26 @@
 services:
   simulation:
-    image: husky_sim
-  data_catcher:
-    image: osrf/ros
-    command: ros2 list topic
+    build: services/simulation/.
+    container_name: husky_sim
+    tty: true
+    stdin_open: true
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    restart: unless-stopped
+  glim:
+    build: services/glim/.
+    container_name: glim
+    network_mode: host
+    ipc: host
+    pid: host
+    tty: true
+    stdin_open: true
+    environment:
+      - DISPLAY
+      - ROS_DOMAIN_ID
+    volumes:
+      - ./services/glim/config:/glim/config
+    command: ros2 run glim_ros glim_rosnode --ros-args -p config_path:=/glim/config
+    restart: unless-stopped
