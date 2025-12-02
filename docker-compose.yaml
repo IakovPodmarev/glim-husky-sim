@@ -9,6 +9,8 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
     restart: unless-stopped
+    devices:
+      - "/dev/input/js0:/dev/input/ps4"
   glim:
     build: services/glim/.
     container_name: glim
