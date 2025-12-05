@@ -48,7 +48,8 @@ platform:
       rpy: [0.0, 0.0, 0.0]
       enabled: true
   extras:
-    urdf: {}
+    urdf: 
+      path: /root/clearpath/clearpath_ur_simulation_gz.urdf.xacro # treating clearpath sim bug
 links:
   box:
     - name: user_bay_cover
@@ -137,3 +138,14 @@ sensors:
           model: VLP16
           fixed_frame: lidar3d_0_laser
           target_frame: lidar3d_0_laser
+manipulators:
+  arms:
+    - model: universal_robots
+      parent: default_mount
+      xyz: [0.2, 0.0, 0.0]
+      rpy: [0.0, 0.0, 0.0]
+      ur_type: ur5e
+      robot_ip: 192.168.131.40
+      gripper:
+        model: robotiq_2f_85
+      initial_positions_file: initial_positions.yaml

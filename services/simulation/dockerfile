@@ -29,11 +29,18 @@ RUN apt-get install -y ros-jazzy-ros-gz
 RUN apt-get update && \ 
     apt-get install -y ros-jazzy-clearpath-simulator 
 
+# install Universal Robot ros2 package
+RUN sudo apt-get install -y ros-${ROS_DISTRO}-ur
+
+# install ur sim to intialise joint state correctly because of bug in clearpath sim
+RUN sudo apt install ros-jazzy-ur-simulation-gz
+COPY src/clearpath_ur_simulation_gz.urdf.xacro /root/clearpath/
 
 # put robot.yaml (with husky A200 specifications) into the right repo 
 WORKDIR /root/clearpath/ 
 COPY  src/robot.yaml /root/clearpath/ 
 
+COPY src/initial_positions.yaml /root/clearpath/ 
 # copying launch to make this garbage simulator work correctly
 COPY src/launch/robot_spawn.launch.py /opt/ros/jazzy/share/clearpath_gz/launch/ 
 
@@ -44,4 +51,8 @@ RUN ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash \
 # setup environment
 RUN echo 'source /root/clearpath/setup.bash' >> /root/.bashrc
 
+COPY src/entry.sh /
+RUN chmod +x /entry.sh
+
+#CMD ["/bin/bash", "-c", "/entry.sh"]
 CMD ["/bin/bash", "-c", "ros2 launch clearpath_gz simulation.launch.py"]

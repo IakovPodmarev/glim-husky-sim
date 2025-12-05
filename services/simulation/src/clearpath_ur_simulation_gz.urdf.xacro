@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find ur_simulation_gz)/urdf/ur_gz.ros2_control.xacro"/>
+  <xacro:ur_ros2_control
+    name="Arm 0 Gazebo Hardware Interface"
+    tf_prefix="arm_0_"
+  />
+</robot>
