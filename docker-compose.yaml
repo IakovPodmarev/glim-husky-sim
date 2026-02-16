@@ -8,7 +8,6 @@ services:
       - DISPLAY=${DISPLAY}
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./try.sh:/try.sh
     restart: unless-stopped
     # devices:
     #  - "/dev/input/js0:/dev/input/ps4"
